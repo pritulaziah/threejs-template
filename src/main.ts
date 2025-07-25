@@ -3,7 +3,6 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { GUIController } from "./core/GUIController";
-import { emitter } from "@core/emitter";
 import { CameraController } from "@core/CameraController";
 import { RendererManager } from "@core/RendererManager";
 import { Suzanne } from "@entities/Suzanne/Suzanne";
@@ -53,17 +52,21 @@ const bootstap = async () => {
    */
   const suzanne = await Suzanne.create(gui.params.color);
   scene.add(suzanne.mesh);
+
   /*
    * Debug
    */
-  emitter.on("backgroundColorChanged", (color) => {
+  gui.onBackgroundChanged((color) => {
     rendererManager.renderer.setClearColor(color);
   });
   
-  emitter.on("colorChanged", (color) => {
+  gui.onColorChanged((color) => {
     suzanne.material.updateColor(color);
   });
 
+  /*
+   * Initial render
+   */
   const render = () => {
     rendererManager.render(scene, cameraController.camera);
   };
@@ -74,6 +77,9 @@ const bootstap = async () => {
     render();
   }, { immediate: true });
 
+  /* 
+   * Animation Loop
+   */
   const animate = async () => {
     requestAnimationFrame(animate);
     const elapsedTime = clock.getElapsedTime();

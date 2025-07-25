@@ -1,11 +1,18 @@
 import { GUI } from "lil-gui";
-import { emitter } from "./emitter";
+import mitt from "mitt";
+
+type GUIEvents = {
+  backgroundColorChanged: string;
+  colorChanged: string;
+};
 
 export class GUIController {
-  params = {
+  public params = {
     backgroundColor: "#181818",
     color: "#ff0000",
   };
+
+  private emitter = mitt<GUIEvents>();
 
   constructor() {
     const gui = new GUI({ width: 400 });
@@ -13,14 +20,22 @@ export class GUIController {
     gui
       .addColor(this.params, "backgroundColor")
       .onChange((value: string) => {
-        emitter.emit("backgroundColorChanged", value);
+        this.emitter.emit("backgroundColorChanged", value);
       })
       .name("Background color");
     gui
       .addColor(this.params, "color")
       .onChange((value: string) => {
-        emitter.emit("colorChanged", value);
+        this.emitter.emit("colorChanged", value);
       })
       .name("Color");
+  }
+
+  onBackgroundChanged(cb: (color: string) => void) {
+    this.emitter.on("backgroundColorChanged", cb);
+  }
+
+  onColorChanged(cb: (color: string) => void) {
+    this.emitter.on("colorChanged", cb);
   }
 }
