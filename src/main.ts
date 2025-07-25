@@ -7,27 +7,27 @@ import { emitter } from "@core/emitter";
 import { CameraController } from "@core/CameraController";
 import { RendererManager } from "@core/RendererManager";
 import { Suzanne } from "@entities/Suzanne/Suzanne";
+import { ViewportManager } from "@core/ViewportManager";
 
 const bootstap = async () => {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
   if (!canvas) throw new Error("Canvas element not found");
-  
+  /* 
+   * GUI
+   */
   const gui = new GUIController();
   /**
    * Sizes
    */
-  const sizes = { width: window.innerWidth, height: window.innerHeight };
-
+  const viewportManager = new ViewportManager();
   /*
    * Scene
    */
   const scene = new THREE.Scene();
-  const cameraController = new CameraController(
-    75,
-    sizes.width / sizes.height,
-    0.1,
-    100
-  );
+  /*
+   * Camera
+   */
+  const cameraController = new CameraController();
   scene.add(cameraController.camera);
   /*
    * Renderer
@@ -48,9 +48,11 @@ const bootstap = async () => {
   const stats = new Stats();
   document.body.appendChild(stats.dom);
 
+  /*
+   * Suzanne
+   */
   const suzanne = await Suzanne.create(gui.params.color);
   scene.add(suzanne.mesh);
-
   /*
    * Debug
    */
@@ -66,20 +68,11 @@ const bootstap = async () => {
     rendererManager.render(scene, cameraController.camera);
   };
 
-  const updateSizes = () => {
-    sizes.width = window.innerWidth;
-    sizes.height = window.innerHeight;
-    cameraController.updateAspect(sizes.width, sizes.height);
-    rendererManager.updateSize(sizes.width, sizes.height);
-  };
-
-  const onResize = () => {
-    updateSizes();
+  viewportManager.onResize(({ width, height, aspect }) => {
+    cameraController.updateAspect(aspect);
+    rendererManager.updateSize(width, height);
     render();
-  };
-
-  window.addEventListener("resize", onResize);
-  updateSizes();
+  }, { immediate: true });
 
   const animate = async () => {
     requestAnimationFrame(animate);
@@ -89,7 +82,7 @@ const bootstap = async () => {
 
     stats.update();
     controls.update();
-    render();
+    rendererManager.render(scene, cameraController.camera);
   };
 
   animate();
