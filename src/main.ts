@@ -71,9 +71,10 @@ const bootstap = async () => {
     rendererManager.render(scene, cameraController.camera);
   };
 
-  viewportManager.onResize(({ width, height, aspect }) => {
+  viewportManager.onResize(() => {
+    const { width, height, pixelRatio, aspect } = viewportManager.state;
     cameraController.updateAspect(aspect);
-    rendererManager.updateSize(width, height);
+    rendererManager.updateSize(width, height, pixelRatio);
     render();
   }, { immediate: true });
 

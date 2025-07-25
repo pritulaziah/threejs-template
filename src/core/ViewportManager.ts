@@ -1,48 +1,57 @@
 import mitt from "mitt";
 
-export type ViewportData = {
-  width: number;
-  height: number;
-  aspect: number;
-};
-
 type ViewportEvents = {
-  resize: ViewportData;
+  resize: undefined;
 };
 
 export class ViewportManager {
   private emitter = mitt<ViewportEvents>();
 
-  public viewport: ViewportData = {
-    width: window.innerWidth,
-    height: window.innerHeight,
-    aspect: window.innerWidth / window.innerHeight,
-  };
+  private _state: { width: number; height: number; pixelRatio: number; };
 
-  constructor() {
+  constructor(private maxPixelRatio = 2) {
+    this._state = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      pixelRatio: this.getPixelRatio(),
+    };
     window.addEventListener("resize", this.handleResize);
   }
 
+  private getPixelRatio(): number {
+    return Math.min(window.devicePixelRatio, this.maxPixelRatio);
+  }
+
+  public get aspect(): number {
+    return this._state.width / this._state.height;
+  }
+
+  public get state() {
+    return { ...this._state, aspect: this.aspect };
+  }
+
   private handleResize = () => {
-    this.viewport.width = window.innerWidth;
-    this.viewport.height = window.innerHeight;
-    this.viewport.aspect = this.viewport.width / this.viewport.height;
+    this._state = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      pixelRatio: this.getPixelRatio(),
+    }
     this.emitResize();
   };
 
   private emitResize() {
-    this.emitter.emit("resize", this.viewport);
+    this.emitter.emit("resize", undefined);
   }
 
-  onResize(cb: (viewport: ViewportData) => void, opts: { immediate?: boolean } = {}) {
+  onResize(cb: () => void, opts: { immediate?: boolean } = {}) {
     if (opts.immediate) {
-      cb(this.viewport);
+      cb();
     }
 
     this.emitter.on("resize", cb);
   }
 
-  offResize(cb: (viewport: ViewportData) => void) {
+  offResize(cb: () => void) {
     this.emitter.off("resize", cb);
   }
 

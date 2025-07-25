@@ -16,9 +16,9 @@ export class RendererManager {
     this.renderer.setClearColor(clearColor);
   }
 
-  public updateSize(width: number, height: number) {
+  public updateSize(width: number, height: number, pixelRatio: number) {
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(pixelRatio);
   }
 
   public render(scene: THREE.Scene, camera: THREE.Camera) {
